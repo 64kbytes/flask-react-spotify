@@ -6,12 +6,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ title }}</title>
         <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+        <script>
+            var accessToken = "{{access_token}}";
+        </script>
     </head>
     <body>
         <main class="container">
             <h1>{{ title }}</h1>
-            <!-- <section data-section="app"></section> -->
-            {{sorted_array}}
+            <section data-section="app"></section>
         </main>
         <script async src="{{ url_for('static', filename='js/main.bundle.js')}}"></script>
     </body>

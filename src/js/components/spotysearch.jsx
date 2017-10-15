@@ -74,6 +74,8 @@ class App extends Component {
     constructor(props) {
         super(props);
 
+        console.log(accessToken);
+
         this.stateKey       = 'spotify_auth_state';
         this.clientId       = '9be3f39c9eef41b5b62916b8e443d952';
         this.redirectURI    = 'http://localhost:3000';
@@ -118,7 +120,7 @@ class App extends Component {
         return (
             <div className="App">
                 <header className="App-header">
-                    <h1 className="App-title">Welcome to React</h1>
+                    <h1 className="App-title">SpotySearch :P</h1>
                 </header>
                 <p className="App-intro">
                     To get started, <Button bsStyle="primary" onClick={() => this.authenticate()}>Log in to Spotify</Button>
