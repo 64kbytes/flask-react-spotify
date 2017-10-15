@@ -1,143 +1,224 @@
-// export default React.createClass({
-
-//   	render: function () {
-// 	    return (
-// 			<div>
-// 				Hey! This is just an auto-generated component.
-// 				Now it's up to you to make something great!
-// 			</div>
-// 	    );
-// 	}
-// });
-
 import React, { Component } from 'react';
 import Axios from 'axios';
-import {Button} from 'react-bootstrap';
+import createHistory from 'history/createMemoryHistory'
 
-//import logo from './logo.svg';
+class SearchForm extends React.Component {
 
-/**
- * Obtains parameters from the hash of the URL
- * @return Object
- */
-function getHashParams() {
-    
-    var hashParams = {};
-    var r = /([^&;=]+)=?([^&;]*)/g;
-    var q = window.location.hash.substring(1);
-    
-    while(true){
-        var e = r.exec(q);
+	constructor(props) {
+		super(props);
+		this.state = {
+			q: '',
+			type: 'track'
+		};
+		
+		this.handleQChange 		= this.handleQChange.bind(this);
+		this.handleTypeChange 	= this.handleTypeChange.bind(this);
+		this.handleSubmit 		= this.handleSubmit.bind(this);
+	}
 
-        if(!e)
-            break;
+	handleQChange(event) {
+		this.setState({q: event.target.value});
+	}
 
-        hashParams[e[1]] = decodeURIComponent(e[2]);
-    }
+	handleTypeChange(event) {
+		this.setState({type: event.target.value});
+	}
 
-    return hashParams;
+	handleSubmit(event) {
+		event.preventDefault();
+		this.props.onSubmit(event, this.state.q, this.state.type);		
+	}
+
+	render() {
+		return (
+			<form onSubmit={this.handleSubmit}>
+				<label>
+					<span>Search for </span>  
+					<select value={this.state.type} onChange={this.handleTypeChange}>
+						<option value="track">Track</option>
+						<option disabled value="artist">Artist</option>
+						<option disabled value="album">Album</option>
+						<option disabled value="playlist">Playlist</option>
+					</select>&nbsp;
+					<input type="text" onChange={this.handleQChange} value={this.state.q} />&nbsp;
+				</label>
+				<input type="submit" value="Submit" />
+			</form>
+		);
+	}
 }
 
-/**
- * Generates a random string containing numbers and letters
- * @param  {number} length The length of the string
- * @return {string} The generated string
- */
-function generateRandomString(length) {
-    var text = '';
-    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+class ListRow extends React.Component {
 
-    for (var i = 0; i < length; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
-};
+	constructor(props) {
+		super(props);
+
+		var isFavorite = false;
+
+		var favorites = localStorage.getItem('favorites') || {};
+
+		if(typeof favorites === 'string')
+			favorites = JSON.parse(favorites);
+
+		if(favorites[this.props.value.id])
+			isFavorite = true;
+
+		this.state = {
+			isFavorite: isFavorite,
+			key: this.props.value.id,
+			albumCover: this.props.value.album.images[0].url,
+			albumName: this.props.value.album.name,
+			artistName: this.props.value.artists[0].name,
+		}
+
+		this.addToFavorites = this.addToFavorites.bind(this);
+		this.removeFromFavorites = this.removeFromFavorites.bind(this);
+	}
 
 
-class ShoppingList extends React.Component {
-  render() {
-    return (
-      <div className="shopping-list">
-        <h1>Shopping List for {this.props.name}</h1>
-        <ul>
-          <li>Instagram</li>
-          <li>WhatsApp</li>
-          <li>Oculus</li>
-        </ul>
-      </div>
-    );
-  }
+	addToFavorites(event) {
+		
+		var favorites = localStorage.getItem('favorites') || {};
+
+		if(typeof favorites === 'string')
+			favorites = JSON.parse(favorites);
+
+		favorites[this.state.key] = this.state;
+		localStorage.setItem('favorites', JSON.stringify(favorites));
+
+		this.setState({isFavorite: true});
+	}
+
+	removeFromFavorites(event) {
+
+		var favorites = localStorage.getItem('favorites') || {};
+
+		if(typeof favorites === 'string')
+			favorites = JSON.parse(favorites);
+
+		delete favorites[this.state.key];
+		localStorage.setItem('favorites', JSON.stringify(favorites));
+
+		this.setState({isFavorite: false});
+	}
+
+	render() {
+
+		return (
+			<tr>
+				<td><img src={this.state.albumCover} width='64'/></td>
+				<td>{this.state.albumName}</td>
+				<td>{this.state.artistName}</td>
+				<td>
+					{this.state.isFavorite !== true ? (
+						<span className='add-to-favorites' onClick={this.addToFavorites}><i className='fa fa-plus-square add-to-fav'></i></span>
+					) : (
+						<span className='add-to-favorites' onClick={this.removeFromFavorites}><i className='fa fa-times-circle remove-from-fav'></i></span>
+					)}
+				</td>
+			</tr>
+		);
+	}
+}
+
+
+class ResultList extends React.Component {
+
+	constructor(props) {
+
+		super(props);
+
+		this.state = {
+			offset: 0
+		}
+	}
+
+	render() {
+
+		var $this = this;
+
+	  	if(this.props.items.length == 0)
+	  		return (<div></div>);
+	  	else	
+		    return (
+		      <div className="result-list">
+		        <h1>Results for <span>{this.props.items[0].name}</span></h1>
+		        <table>
+		        	<thead>
+		        		<tr>
+			        		<th>Album Cover</th>
+			        		<th>Album Name</th>
+			        		<th>Artist</th>
+			        		<th>Add to Favorites</th>
+			        	</tr>
+		        	</thead>
+		        	<tbody>
+			        	{this.props.items.map(function(item){
+				    		return <ListRow key={item.id} value={item} />
+				      	})}
+				    </tbody>
+		        </table>
+		      </div>
+		    );
+	}
 }
 
 class App extends Component {
 
-    constructor(props) {
-        super(props);
+	constructor(props) {
+		super(props)
 
-        console.log(accessToken);
+		this.state = {
+			items: []
+		}
 
-        this.stateKey       = 'spotify_auth_state';
-        this.clientId       = '9be3f39c9eef41b5b62916b8e443d952';
-        this.redirectURI    = 'http://localhost:3000';
-        this.scope          = '';
+		this.search = this.search.bind(this);
 
-        var params = getHashParams();
+		// const history = createHistory()
 
-        this.state = {
-            accessToken:        params.access_token || null,
-            apiAuthState:       params.state || null,
-            apiStoredAuthState: localStorage.getItem(this.stateKey) || null
-        }
-    }
+		// // Get the current location.
+		// const location = history.location
 
-    getAuthURL(){
+		// // // Listen for changes to the current location.
+		// // const unlisten = history.listen((location, action) => {
+		// //   // location is an object like window.location
+		// //   console.log(action, location.pathname, location.state)
+		// // })
 
-        var state = generateRandomString(16);
+		// // Use push, replace, and go to navigate around.
+		// history.push('/home', { some: 'state' })
 
-        var url = 'https://accounts.spotify.com/authorize';
-        url += '?response_type=token';
-        url += '&client_id=' + encodeURIComponent(this.clientId);
-        url += '&scope=' + encodeURIComponent(this.scope);
-        url += '&redirect_uri=' + encodeURIComponent(this.redirectURI);
-        url += '&state=' + encodeURIComponent(state);
+		// // To stop listening, call the function returned from listen().
+		// //unlisten()
+	}
 
-        return [url, state];
-    }
-    
-    authenticate() {
-              
-        var [url, state] = this.getAuthURL();
-        localStorage.setItem(this.stateKey, state);
-        window.location = url;
-    }
+    search(event, q, type) {
 
-    isLogged(){
-        return (this.state.accessToken && this.state.apiAuthState && this.state.apiStoredAuthState) 
-            && (this.state.apiAuthState === this.state.apiStoredAuthState);
-    }
+    	var $this = this;
 
-    login() {
-        return (
-            <div className="App">
-                <header className="App-header">
-                    <h1 className="App-title">SpotySearch :P</h1>
-                </header>
-                <p className="App-intro">
-                    To get started, <Button bsStyle="primary" onClick={() => this.authenticate()}>Log in to Spotify</Button>
-                </p>
- 
-            </div>
-        );
-    }
+    	event.preventDefault();
 
-    search() {
+    	Axios.post('/search', {
+			q: q,
+			type: type
+		})
+		.then(function (response) {
+			
+			console.log(response);
 
-        var query = {
-            url: 'https://api.spotify.com/v1/search?q=geldof&type=artist',
-            headers: {
-                'Authorization': 'Bearer ' + this.state.accessToken
-            }
-        };
+			$this.setState({items: response.data[type + 's'].items});
+			
+		})
+		.catch(function (error) {
+			console.log(error);
+		});
+
+        // var query = {
+        //     url: 'https://api.spotify.com/v1/search?q=geldof&type=artist',
+        //     headers: {
+        //         'Authorization': 'Bearer ' + this.state.accessToken
+        //     }
+        // };
 
         // Request.get(query, function(error, response, body) {
 
@@ -178,19 +259,28 @@ class App extends Component {
         //         }
         // });
 
-        return (
-            <div>Ok</div>
-        );
+        // return (
+        //     <div>Ok</div>
+        // );
     }
 
     render() {
 
         //localStorage.removeItem(stateKey);
-        if (this.isLogged()) {
-            return this.search();
-        } else {
-            return this.login();
-        }
+        return (
+        	<div className="App">
+                <header className="App-header">
+                    <h1 className="App-title">SpotySearch :P</h1>
+                </header>
+                <div>
+                	<SearchForm onSubmit={this.search}/>
+                </div>
+                <div>
+                	<ResultList items={this.state.items}/>
+                </div>
+ 
+            </div>
+        )
     }
 }
 

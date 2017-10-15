@@ -36,6 +36,7 @@
     "babel-polyfill": "^6.9.0",
     "babel-preset-es2015": "^6.9.0",
     "babel-preset-react": "^6.5.0",
+    "history": "^4.7.2",
     "normalize.less": "^1.0.0",
     "react": "^0.14.0",
     "react-bootstrap": "^0.31.3",
