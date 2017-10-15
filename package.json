@@ -1,0 +1,45 @@
+{
+  "name": "spotysearch",
+  "version": "1.0.0",
+  "description": "Front-end for spotysearch",
+  "main": "src/js/main.js",
+  "scripts": {
+    "app": "npm run prod && python spotysearch.py",
+    "compile": "gulp compile",
+    "lint": "eslint src/js",
+    "prod": "gulp prod",
+    "test": "mocha --compilers js:babel-register --recursive test/*",
+    "watch": "gulp watch"
+  },
+  "author": "MYacobs <myacobs@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://www.github.com/64kbytes/spotysearch"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^3.3.0",
+    "eslint": "^4.9.0",
+    "gulp": "^3.9.0",
+    "gulp-less": "^3.0.3",
+    "gulp-clean-css": "^2.0.7",
+    "gulp-watch": "^4.3.5",
+    "less-plugin-autoprefix": "^1.5.1",
+    "mocha": "^2.3.3",
+    "react-addons-test-utils": "^0.14.0",
+    "sinon": "^1.17.1"
+  },
+  "dependencies": {
+    "axios": "^0.16.2",
+    "babel-core": "^6.9.0",
+    "babel-loader": "^6.2.4",
+    "babel-polyfill": "^6.9.0",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-react": "^6.5.0",
+    "normalize.less": "^1.0.0",
+    "react": "^0.14.0",
+    "react-bootstrap": "^0.31.3",
+    "react-dom": "^0.14.0",
+    "webpack": "^1.13.1"
+  }
+}
