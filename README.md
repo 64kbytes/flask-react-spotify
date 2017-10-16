@@ -1,6 +1,13 @@
 # spotysearch
 
 Used a Yeoman flask-react generator. https://github.com/derekpeterson/generator-react-flask
+
+Clone this repo and then:
+
+$ pip install -r requirements.txt
+$ npm install
+$ npm run app
+
 Below you have instructions on how the skeleton project has been set up.
 
 ## Up and running
