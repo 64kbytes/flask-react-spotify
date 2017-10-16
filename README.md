@@ -1,5 +1,6 @@
 # spotysearch
 
+Used a Yeoman flask-react generator. https://github.com/derekpeterson/generator-react-flask
 Below you have instructions on how the skeleton project has been set up.
 
 ## Up and running
