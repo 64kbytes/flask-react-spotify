@@ -1,21 +1,7 @@
-<html lang="en-us">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ title }}</title>
-        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
-        <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
-        <script>
-            var accessToken = "{{access_token}}";
-        </script>
-    </head>
-    <body>
-        <main class="container">
-            <h1>{{ title }}</h1>
-            <section data-section="search"></section>
-        </main>
-        <script async src="{{ url_for('static', filename='js/main.bundle.js')}}"></script>
-    </body>
-</html>
+{% extends 'base.html' %}
+
+{% block content %}
+<main class="container">
+    <section data-section="search"></section>
+</main>
+{% endblock %}

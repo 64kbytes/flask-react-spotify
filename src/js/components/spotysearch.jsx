@@ -1,6 +1,26 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
-import createHistory from 'history/createMemoryHistory'
+import createHistory from 'history/createBrowserHistory'
+import {ResultList} from './resultlist'
+import {TrackList} from './track'
+
+function getHashParams() {
+    
+    var hashParams = {};
+    var r = /([^&;=]+)=?([^&;]*)/g;
+    var q = window.location.hash.substring(1);
+    
+    while(true){
+        var e = r.exec(q);
+
+        if(!e)
+            break;
+
+        hashParams[e[1]] = decodeURIComponent(e[2]);
+    }
+
+    return hashParams;
+}
 
 class SearchForm extends React.Component {
 
@@ -26,7 +46,7 @@ class SearchForm extends React.Component {
 
 	handleSubmit(event) {
 		event.preventDefault();
-		this.props.onSubmit(event, this.state.q, this.state.type);		
+		this.props.onSubmit(this.state.q, this.state.type, event);		
 	}
 
 	render() {
@@ -48,121 +68,6 @@ class SearchForm extends React.Component {
 	}
 }
 
-class ListRow extends React.Component {
-
-	constructor(props) {
-		super(props);
-
-		var isFavorite = false;
-
-		var favorites = localStorage.getItem('favorites') || {};
-
-		if(typeof favorites === 'string')
-			favorites = JSON.parse(favorites);
-
-		if(favorites[this.props.value.id])
-			isFavorite = true;
-
-		this.state = {
-			isFavorite: isFavorite,
-			key: this.props.value.id,
-			albumCover: this.props.value.album.images[0].url,
-			albumName: this.props.value.album.name,
-			artistName: this.props.value.artists[0].name,
-		}
-
-		this.addToFavorites = this.addToFavorites.bind(this);
-		this.removeFromFavorites = this.removeFromFavorites.bind(this);
-	}
-
-
-	addToFavorites(event) {
-		
-		var favorites = localStorage.getItem('favorites') || {};
-
-		if(typeof favorites === 'string')
-			favorites = JSON.parse(favorites);
-
-		favorites[this.state.key] = this.state;
-		localStorage.setItem('favorites', JSON.stringify(favorites));
-
-		this.setState({isFavorite: true});
-	}
-
-	removeFromFavorites(event) {
-
-		var favorites = localStorage.getItem('favorites') || {};
-
-		if(typeof favorites === 'string')
-			favorites = JSON.parse(favorites);
-
-		delete favorites[this.state.key];
-		localStorage.setItem('favorites', JSON.stringify(favorites));
-
-		this.setState({isFavorite: false});
-	}
-
-	render() {
-
-		return (
-			<tr>
-				<td><img src={this.state.albumCover} width='64'/></td>
-				<td>{this.state.albumName}</td>
-				<td>{this.state.artistName}</td>
-				<td>
-					{this.state.isFavorite !== true ? (
-						<span className='add-to-favorites' onClick={this.addToFavorites}><i className='fa fa-plus-square add-to-fav'></i></span>
-					) : (
-						<span className='add-to-favorites' onClick={this.removeFromFavorites}><i className='fa fa-times-circle remove-from-fav'></i></span>
-					)}
-				</td>
-			</tr>
-		);
-	}
-}
-
-
-class ResultList extends React.Component {
-
-	constructor(props) {
-
-		super(props);
-
-		this.state = {
-			offset: 0
-		}
-	}
-
-	render() {
-
-		var $this = this;
-
-	  	if(this.props.items.length == 0)
-	  		return (<div></div>);
-	  	else	
-		    return (
-		      <div className="result-list">
-		        <h1>Results for <span>{this.props.items[0].name}</span></h1>
-		        <table>
-		        	<thead>
-		        		<tr>
-			        		<th>Album Cover</th>
-			        		<th>Album Name</th>
-			        		<th>Artist</th>
-			        		<th>Add to Favorites</th>
-			        	</tr>
-		        	</thead>
-		        	<tbody>
-			        	{this.props.items.map(function(item){
-				    		return <ListRow key={item.id} value={item} />
-				      	})}
-				    </tbody>
-		        </table>
-		      </div>
-		    );
-	}
-}
-
 class App extends Component {
 
 	constructor(props) {
@@ -174,29 +79,36 @@ class App extends Component {
 
 		this.search = this.search.bind(this);
 
-		// const history = createHistory()
 
-		// // Get the current location.
-		// const location = history.location
+		this.history = createHistory()
 
-		// // // Listen for changes to the current location.
-		// // const unlisten = history.listen((location, action) => {
-		// //   // location is an object like window.location
-		// //   console.log(action, location.pathname, location.state)
-		// // })
+		const location = history.location
 
-		// // Use push, replace, and go to navigate around.
-		// history.push('/home', { some: 'state' })
+		// Listen for changes to the current location.
+		// this.historyUnlisten = this.history.listen((location, action) => {
+		// 	console.log('CHANGE');
+		// 	// location is an object like window.location
+		// 	console.log(action, location.pathname, location.state)
+		// })
 
-		// // To stop listening, call the function returned from listen().
-		// //unlisten()
+		// To stop listening, call the function returned from listen().
+		//this.historyUnlisten()
+
+
+		var r = /^\?[\w]=(.*)&type=(.*)$/i;
+    	var query = r.exec(window.location.search);
+    	if(query)
+    		this.search(query[1], query[2]);
 	}
 
-    search(event, q, type) {
+    search(q, type, event) {
+
+    	this.history.push('/search?q=' + q + '&type=' + type);
 
     	var $this = this;
 
-    	event.preventDefault();
+    	if(event)
+    		event.preventDefault();
 
     	Axios.post('/search', {
 			q: q,
@@ -206,7 +118,9 @@ class App extends Component {
 			
 			console.log(response);
 
-			$this.setState({items: response.data[type + 's'].items});
+			var tracklist = new TrackList(response.data[type + 's'].items);
+
+			$this.setState({items: tracklist.list()});
 			
 		})
 		.catch(function (error) {
@@ -268,9 +182,9 @@ class App extends Component {
 
         //localStorage.removeItem(stateKey);
         return (
-        	<div className="App">
-                <header className="App-header">
-                    <h1 className="App-title">SpotySearch :P</h1>
+        	<div>
+                <header>
+                    <h1>SpotySearch :)</h1>
                 </header>
                 <div>
                 	<SearchForm onSubmit={this.search}/>

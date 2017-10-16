@@ -1,15 +1,31 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
+import {ResultList} from './resultlist'
+import Storage from './storage'
 
-class Fav extends Component {
+class Favorites extends Component {
+
+	constructor(props) {
+
+		super(props);
+
+		this.state = {
+			items: Storage.list()
+		}
+	}
 
     render() {
 
         return (
         	<div>
-                Favorites
+                <header>
+                    <h1>Favorites</h1>
+                </header>
+                <div>
+                	<ResultList items={this.state.items}/>
+                </div>
             </div>
         )
     }
 }
 
-export default Fav;
+export default Favorites;
