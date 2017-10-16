@@ -4,24 +4,24 @@ import Storage from './storage'
 
 class Favorites extends Component {
 
-	constructor(props) {
+    constructor(props) {
 
-		super(props);
+        super(props);
 
-		this.state = {
-			items: Storage.list()
-		}
-	}
+        this.state = {
+            items: Storage.list()
+        }
+    }
 
     render() {
 
         return (
-        	<div>
+            <div>
                 <header>
                     <h1>Favorites</h1>
                 </header>
                 <div>
-                	<ResultList items={this.state.items}/>
+                    <ResultList items={this.state.items}/>
                 </div>
             </div>
         )

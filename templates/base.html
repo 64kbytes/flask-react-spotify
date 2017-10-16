@@ -12,15 +12,15 @@
         </script>
     </head>
     <body>
-    	<header class="container">
-    		<nav>
-	    		<ul>
-	    			<li class="{% if request.path == '/search' %} active {% endif %}"><a href='/search'>Search</a></li>
-	    			<li class="{% if request.path == '/favorites' %} active {% endif %}"><a href='/favorites'>Favorites</a></li>
-	    		</ul>
-	    	</nav>
-    	</header>
-    	{% block content %}{% endblock %}
+        <header class="container">
+            <nav>
+                <ul>
+                    <li class="{% if request.path == '/search' %} active {% endif %}"><a href='/search'>Search</a></li>
+                    <li class="{% if request.path == '/favorites' %} active {% endif %}"><a href='/favorites'>Favorites</a></li>
+                </ul>
+            </nav>
+        </header>
+        {% block content %}{% endblock %}
     
         <script async src="{{ url_for('static', filename='js/main.bundle.js')}}"></script>
     </body>

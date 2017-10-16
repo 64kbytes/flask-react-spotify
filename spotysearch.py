@@ -142,7 +142,8 @@ def search():
     # search query
     q       = request.json.get('q', '')
     t       = request.json.get('type', '')
-    query   = "{}/search?q={}&type={}".format(SPOTIFY_API_URL, q, t)
+    o       = request.json.get('offset', 0)
+    query   = "{}/search?q={}&type={}&offset={}".format(SPOTIFY_API_URL, q, t, o)
 
     reply   = requests.get(query, headers=authorization_header)
     result  = json.loads(reply.text)

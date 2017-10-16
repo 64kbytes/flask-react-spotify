@@ -4,6 +4,16 @@ import createHistory from 'history/createBrowserHistory'
 import {ResultList} from './resultlist'
 import {TrackList} from './track'
 
+function getDistFromBottom () {
+  
+  var scrollPosition = window.pageYOffset;
+  var windowSize     = window.innerHeight;
+  var bodyHeight     = document.body.offsetHeight;
+
+  return Math.max(bodyHeight - (scrollPosition + windowSize), 0);
+
+}
+
 function getHashParams() {
     
     var hashParams = {};
@@ -24,173 +34,164 @@ function getHashParams() {
 
 class SearchForm extends React.Component {
 
-	constructor(props) {
-		super(props);
-		this.state = {
-			q: '',
-			type: 'track'
-		};
-		
-		this.handleQChange 		= this.handleQChange.bind(this);
-		this.handleTypeChange 	= this.handleTypeChange.bind(this);
-		this.handleSubmit 		= this.handleSubmit.bind(this);
-	}
+    constructor(props) {
+        super(props);
+        this.state = {
+            q: '',
+            type: 'track'
+        };
+        
+        this.handleQChange      = this.handleQChange.bind(this);
+        this.handleTypeChange   = this.handleTypeChange.bind(this);
+        this.handleSubmit       = this.handleSubmit.bind(this);
+    }
 
-	handleQChange(event) {
-		this.setState({q: event.target.value});
-	}
+    handleQChange(event) {
+        this.setState({q: event.target.value});
+    }
 
-	handleTypeChange(event) {
-		this.setState({type: event.target.value});
-	}
+    handleTypeChange(event) {
+        this.setState({type: event.target.value});
+    }
 
-	handleSubmit(event) {
-		event.preventDefault();
-		this.props.onSubmit(this.state.q, this.state.type, event);		
-	}
+    handleSubmit(event) {
+        event.preventDefault();
+        this.props.onSubmit(this.state.q, this.state.type, event);      
+    }
 
-	render() {
-		return (
-			<form onSubmit={this.handleSubmit}>
-				<label>
-					<span>Search for </span>  
-					<select value={this.state.type} onChange={this.handleTypeChange}>
-						<option value="track">Track</option>
-						<option disabled value="artist">Artist</option>
-						<option disabled value="album">Album</option>
-						<option disabled value="playlist">Playlist</option>
-					</select>&nbsp;
-					<input type="text" onChange={this.handleQChange} value={this.state.q} />&nbsp;
-				</label>
-				<input type="submit" value="Submit" />
-			</form>
-		);
-	}
+    render() {
+        return (
+            <form onSubmit={this.handleSubmit}>
+                <label>
+                    <span>Search for </span>  
+                    <select value={this.state.type} onChange={this.handleTypeChange}>
+                        <option value="track">Track</option>
+                        <option disabled value="artist">Artist</option>
+                        <option disabled value="album">Album</option>
+                        <option disabled value="playlist">Playlist</option>
+                    </select>&nbsp;
+                    <input type="text" onChange={this.handleQChange} value={this.state.q} />&nbsp;
+                </label>
+                <input type="submit" value="Search" />
+            </form>
+        );
+    }
 }
 
-class App extends Component {
+class Search extends Component {
 
-	constructor(props) {
-		super(props)
+    constructor(props) {
+        super(props)
 
-		this.state = {
-			items: []
-		}
+        this.state = {
+            items: [],
+            query: {
+                q: '',
+                type: '',
+            },
+            terms: '',
+            loading: false,
+            limit: 20,
+            page: 0
+        }
 
-		this.search = this.search.bind(this);
-
-
-		this.history = createHistory()
-
-		const location = history.location
-
-		// Listen for changes to the current location.
-		// this.historyUnlisten = this.history.listen((location, action) => {
-		// 	console.log('CHANGE');
-		// 	// location is an object like window.location
-		// 	console.log(action, location.pathname, location.state)
-		// })
-
-		// To stop listening, call the function returned from listen().
-		//this.historyUnlisten()
+        this.search = this.search.bind(this);
+        this.handleScroll = this.handleScroll.bind(this);
 
 
-		var r = /^\?[\w]=(.*)&type=(.*)$/i;
-    	var query = r.exec(window.location.search);
-    	if(query)
-    		this.search(query[1], query[2]);
-	}
+        this.history = createHistory()
 
-    search(q, type, event) {
+        // trigger search if url have a query string
+        var r = /^\?[\w]=(.*)&type=(.*)$/i;
+        var query = r.exec(window.location.search);
+        if(query)
+            this.search(query[1], query[2]);
 
-    	this.history.push('/search?q=' + q + '&type=' + type);
+    }
 
-    	var $this = this;
+    componentDidMount() {
+    
+        window.addEventListener('scroll', this.handleScroll);
+    }
 
-    	if(event)
-    		event.preventDefault();
+    componentWillUnmount() {
 
-    	Axios.post('/search', {
-			q: q,
-			type: type
-		})
-		.then(function (response) {
-			
-			console.log(response);
+        window.removeEventListener('scroll', this.handleScroll);
+    }
 
-			var tracklist = new TrackList(response.data[type + 's'].items);
+    get offset() {
+        return this.state.limit * this.state.page;
+    }
 
-			$this.setState({items: tracklist.list()});
-			
-		})
-		.catch(function (error) {
-			console.log(error);
-		});
+    handleScroll(event) {
 
-        // var query = {
-        //     url: 'https://api.spotify.com/v1/search?q=geldof&type=artist',
-        //     headers: {
-        //         'Authorization': 'Bearer ' + this.state.accessToken
-        //     }
-        // };
+        if(this.state.query.q){
+            if((getDistFromBottom() < 200) && !this.state.loading){
+                console.log('Foop');
+                this.state.page++;
+                this.search(this.state.query.q, this.state.query.type, null, true);
+            }
+        } 
+    }
 
-        // Request.get(query, function(error, response, body) {
+    search(q, type, event, append) {
 
+        this.terms = decodeURIComponent(q);
 
-        //     console.log(body);
+        this.history.push('/search?q=' + q + '&type=' + type);
 
-        //     if (!error && response.statusCode === 200) {
+        this.state.query = {q: q, type: type};
 
+        console.log(this.state);
 
+        var $this = this;
 
+        if(event)
+            event.preventDefault();
 
-        //         // // use the access token to access the Spotify Web API
-        //         // var token = body.access_token;
-        //         // var options = {
-        //         //     url: 'https://api.spotify.com/v1/users/jmperezperez',
-        //         //         headers: {
-        //         //         'Authorization': 'Bearer ' + token
-        //         //     },
-        //         //     json: true
-        //         // };
-        //         // request.get(options, function(error, response, body) {
-        //         //     console.log(body);
-        //         // });
-        //     }
-        // });
+        this.state.loading = true;
 
+        // call backend
+        Axios.post('/search', {
+            q: q,
+            type: type,
+            offset: this.offset
+        })
+        .then(function (response) {
+        
+            var tracklist = new TrackList(response.data[type + 's'].items);
 
-        // $.ajax({
-        //         url: 'https://api.spotify.com/v1/me',
-        //         headers: {
-        //             'Authorization': 'Bearer ' + access_token
-        //         },
-        //         success: function(response) {
-        //             userProfilePlaceholder.innerHTML = userProfileTemplate(response);
+            var list = [];
 
-        //             $('#login').hide();
-        //             $('#loggedin').show();
-        //         }
-        // });
+            if(append)
+                list = $this.state.items.concat(tracklist.list())
+            else
+                list = tracklist.list();
 
-        // return (
-        //     <div>Ok</div>
-        // );
+            $this.setState({items: list});
+            
+        })
+        .catch(function (error) {
+            alert(error);
+        })
+        .then(() => {
+            $this.setState({loading: false});
+        });
+
     }
 
     render() {
 
-        //localStorage.removeItem(stateKey);
         return (
-        	<div>
+            <div>
                 <header>
                     <h1>SpotySearch :)</h1>
                 </header>
                 <div>
-                	<SearchForm onSubmit={this.search}/>
+                    <SearchForm onSubmit={this.search}/>
                 </div>
                 <div>
-                	<ResultList items={this.state.items}/>
+                    <ResultList items={this.state.items} terms={this.terms}/>
                 </div>
  
             </div>
@@ -198,4 +199,4 @@ class App extends Component {
     }
 }
 
-export default App;
+export default Search;
