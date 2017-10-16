@@ -17,7 +17,7 @@ class ResultList extends React.Component {
             return (
               <div className="result-list">
                 { this.props.terms &&
-                    <h1>Results for <span><i>'{this.props.terms}'</i></span></h1>
+                    <h1>{this.props.total} Results for <span><i>'{this.props.terms}'</i></span></h1>
                 }
                 <table>
                     <thead>

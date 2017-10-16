@@ -1,8 +1,8 @@
 import Storage from './storage';
 
 class Track {
-    
-    constructor(data){
+
+    constructor (data){
 
         this.key = data.id;
         this.albumCover = data.album.images[0].url;
@@ -15,15 +15,19 @@ class Track {
 }
 
 class TrackList {
-    constructor(list){
-        
+    constructor (list){
+
         this.tracks = [];
-        
-        for(var i in list)
-            this.tracks.push(new Track(list[i]))
+
+        for(var i in list){
+
+            if(list.hasOwnProperty(i)){
+                this.tracks.push(new Track(list[i]));
+            }
+        }
     }
 
-    list() {
+    list () {
         return this.tracks;
     }
 }

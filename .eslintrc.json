@@ -56,7 +56,7 @@
     }],
     "comma-style": [1, "last"],
     "curly": [2, "multi-line"],
-    "indent": [1, 2],
+    "indent": [1, 4],
     "key-spacing": [0, {
       "align": "value"
     }],

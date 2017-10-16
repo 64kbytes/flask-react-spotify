@@ -1,31 +1,35 @@
 module.exports = {
     storeName: 'favorites',
-    get() {
+    get () {
 
         var favs = localStorage.getItem(this.storeName) || {};
 
         if(typeof favs === 'string')
-            favs = JSON.parse(favs);
+        {favs = JSON.parse(favs);}
 
         return favs;
     },
-    list() {
+    list () {
+
         var obj = this.get();
         var list = [];
-        for(var i in obj)
-            list.push(obj[i]);
+
+        for(var i in obj){
+            if (obj.hasOwnProperty(i))
+            {list.push(obj[i]);}
+        }
 
         return list;
     },
-    keyExists(key) {
+    keyExists (key) {
         return this.get()[key];
     },
-    add(fav) {
+    add (fav) {
 
         var stored = localStorage.getItem(this.storeName) || {};
 
         if(typeof stored === 'string')
-            stored = JSON.parse(stored);
+        {stored = JSON.parse(stored);}
 
         stored[fav.key] = fav;
 
@@ -33,15 +37,15 @@ module.exports = {
 
         return this;
     },
-    remove(key){
+    remove (key){
 
         var stored = localStorage.getItem(this.storeName) || {};
 
         if(typeof stored === 'string')
-            stored = JSON.parse(stored);
+        {stored = JSON.parse(stored);}
 
         delete stored[key];
-        
+
         localStorage.setItem(this.storeName, JSON.stringify(stored));
     }
-}
+};

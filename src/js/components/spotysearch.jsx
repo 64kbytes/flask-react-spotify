@@ -56,7 +56,9 @@ class SearchForm extends React.Component {
 
     handleSubmit(event) {
         event.preventDefault();
-        this.props.onSubmit(this.state.q, this.state.type, event);      
+
+        if(this.state.q)
+            this.props.onSubmit(this.state.q, this.state.type, event);      
     }
 
     render() {
@@ -64,7 +66,7 @@ class SearchForm extends React.Component {
             <form onSubmit={this.handleSubmit}>
                 <label>
                     <span>Search for </span>  
-                    <select value={this.state.type} onChange={this.handleTypeChange}>
+                    <select value={this.state.type} onChange={this.handleTypeChange} className='hidden'>
                         <option value="track">Track</option>
                         <option disabled value="artist">Artist</option>
                         <option disabled value="album">Album</option>
@@ -90,6 +92,7 @@ class Search extends Component {
                 type: '',
             },
             terms: '',
+            total: 0,
             loading: false,
             limit: 20,
             page: 0
@@ -136,7 +139,10 @@ class Search extends Component {
 
     search(q, type, event, append) {
 
-        this.terms = decodeURIComponent(q);
+        if(!q || !type)
+            return false;
+
+        this.state.terms = decodeURIComponent(q);
 
         this.history.push('/search?q=' + q + '&type=' + type);
 
@@ -168,7 +174,7 @@ class Search extends Component {
             else
                 list = tracklist.list();
 
-            $this.setState({items: list});
+            $this.setState({items: list, total: response.data[type + 's'].total});
             
         })
         .catch(function (error) {
@@ -191,7 +197,7 @@ class Search extends Component {
                     <SearchForm onSubmit={this.search}/>
                 </div>
                 <div>
-                    <ResultList items={this.state.items} terms={this.terms}/>
+                    <ResultList items={this.state.items} terms={this.state.terms} total={this.state.total}/>
                 </div>
  
             </div>
